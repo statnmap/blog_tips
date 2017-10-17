@@ -1,0 +1,146 @@
+---
+title: "Polygon tint band with leaflet and simple feature with library (sf)"
+author: 'Sébastien Rochette - StatnMap'
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output:
+  html_document:
+    keep_md: no
+    number_sections: no
+    self_contained: yes
+    theme: cerulean
+    toc: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE
+  )
+```
+
+# Add a tint band (aka shapeburst fill) in leaflet
+Stackoverflow is again a source of inspiration. I found this [question on tint bands in leaflet](https://stackoverflow.com/questions/43110181/how-to-apply-polygon-tint-bands-in-leaflet), not related to R originally but I though I could answer it with R easily. This is also a good one for me to play with this new [simple feature library sf](https://github.com/r-spatial/sf) and use it with leaflet.
+My simple solution is to create a new multipolygon from the original one, but with holes inside, so that we only get a doughnut polygon for each area. As raised by my question on stackoverflow (again...), I recently remarked that it could be tricky to plot [multipolygons with holes in ggplot2](https://stackoverflow.com/questions/44140660/draw-spatialpolygons-with-multiple-subpolygons-and-holes-using-ggplot2) with `SpatialPolygons` from library `sp`, which is another reason to use library `sf`.
+
+## Get French regions data
+Let's use some French regions polygons and attribute one colour to each region.
+
+```{r}
+# May require last versions of dplyr, ggplot2 and sf
+# devtools::install_github("tidyverse/dplyr")
+# devtools::install_github("tidyverse/ggplot2")
+# devtools::install_github("r-spatial/sf")
+library(raster)
+library(sf)
+library(raster)
+library(dplyr)
+library(ggplot2)
+library(leaflet)
+
+fra.sp <- getData('GADM', country = 'FRA', level = 1)
+fra.sf <- st_as_sf(fra.sp) #%>%
+  # filter(NAME_1 %in% c("Bretagne", "Pays de la Loire", "Basse-Normandie", "Haute-Normandie"))
+
+g <- ggplot(fra.sf) +
+  geom_sf(aes(fill = NAME_1), alpha = 0.8) +
+  scale_fill_manual(values = rep(unique(yarrr::piratepal("basel")),
+                                 length.out = nrow(fra.sf))) +
+  guides(fill = FALSE)
+
+ggsave(plot = g, filename = "Tint_Band_Regions.jpg",
+       width = 12, height = 11.8, units = "cm",
+       dpi = 200)
+
+```
+```{r, out.width='70%', echo=FALSE, fig.align='center'}
+knitr::include_graphics("Tint_Band_Regions.jpg")
+```
+
+## Create future holes with buffer
+We create the future holes with a smaller buffer area.
+_`st_buffer` returns an object without geometry type (`geometry type:  GEOMETRY`), which prevents it to be plot (`Error in CPL_gdal_dimension(st_geometry(x), NA_if_empty)`). A workaround is to use `st_cast` after._
+
+```{r}
+fra.sf.buf <- st_cast(st_buffer(fra.sf, dist = -0.1))
+
+g <- ggplot() +
+  geom_sf(data = fra.sf.buf, aes(fill = factor(NAME_1)), alpha = 0.8) +
+  geom_sf(data = fra.sf,
+          colour = "grey20", fill = "transparent",
+          size = 0.5) +
+  scale_fill_manual(values = rep(unique(yarrr::piratepal("basel")),
+                                 length.out = nrow(fra.sf))) +
+  guides(fill = FALSE)
+
+ggsave(plot = g, filename = "Tint_Band_Holes.jpg",
+       width = 12, height = 11.8, units = "cm",
+       dpi = 200)
+
+```
+```{r, out.width='70%', echo=FALSE, fig.align='center'}
+knitr::include_graphics("Tint_Band_Holes.jpg")
+```
+
+## Create holes in the original polygons
+To create the doughnuts using original and buffer polygons, I used `st_difference`. However as [discussed with edzer in the `sf` github repository](https://github.com/r-spatial/sf/issues/459#issuecomment-321292554), I had to transform the buffer polygons into a Multipolygon of a unique Multipolygon using `st_combine`. Moreover, because the resulting Multipolygon object as no identified geometry, I had to pass it through `st_cast`.
+
+```{r}
+# st_difference work if the mask is a unique multipolygon
+fra.sf.buf.comb <- fra.sf.buf %>% st_combine() %>% st_sf()
+fra.sf.doug <- st_difference(fra.sf, fra.sf.buf.comb) %>% st_cast()
+
+g <- ggplot() +
+  geom_sf(data = fra.sf.doug, aes(fill = factor(NAME_1)),
+          alpha = 0.6, colour = "transparent") +
+  # geom_sf(data = fra.sf, colour = "grey20") +
+  scale_fill_manual(values = rep(unique(yarrr::piratepal("basel")),
+                                 length.out = nrow(fra.sf.doug))) +
+  guides(fill = FALSE)
+
+ggsave(plot = g, filename = "Tint_Band_Doughnuts.jpg",
+       width = 12, height = 11.8, units = "cm",
+       dpi = 200)
+
+```
+```{r, out.width='70%', echo=FALSE, fig.align='center'}
+knitr::include_graphics("Tint_Band_Doughnuts.jpg")
+```
+
+## Output tint bands in leaflet
+Now we can use it to produce a leaflet map with tinted bands having transparency and original polygons in black.
+```{r}
+factpal <- colorFactor(rep(unique(yarrr::piratepal("basel")),
+                                 length.out = nrow(fra.sf.doug)),
+                       fra.sf.doug$NAME_1)
+# Simplify geometry to get a lighter widget
+# Separate "Rhône-Alpes", "Franche-Comté", "Bourgogne", "Bretagne" as it does not support to much simplification
+fra.sf.doug.simple1 <- st_simplify(filter(fra.sf.doug, NAME_1 %in% c("Rhône-Alpes", "Franche-Comté")), dTolerance = 1e-4)
+fra.sf.doug.simple2 <- st_simplify(filter(fra.sf.doug, NAME_1 %in% c("Bourgogne")), dTolerance = 1e-5)
+fra.sf.doug.simple3 <- st_simplify(filter(fra.sf.doug, NAME_1 %in% c("Bretagne")), dTolerance = 1e-2)
+fra.sf.doug.simple4 <- st_simplify(filter(fra.sf.doug, !NAME_1 %in% c("Rhône-Alpes", "Franche-Comté", "Bourgogne", "Bretagne")), dTolerance = 0.02)
+fra.sf.doug.simple <- rbind(fra.sf.doug.simple1, fra.sf.doug.simple2, fra.sf.doug.simple3,  fra.sf.doug.simple4) %>% st_cast()
+fra.sf.simple <- st_simplify(fra.sf, dTolerance = 0.02)
+
+# leaflet widget
+m <- leaflet() %>%
+  addProviderTiles(providers$Stamen.Toner) %>%
+  # addTiles() %>%
+  # addTiles(
+    # urlTemplate = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png") %>%
+  addPolygons(data = fra.sf.doug, weight = 1, smoothFactor = 0.5,
+    opacity = 0, fillOpacity = 0.6,
+    color = "#000000",
+    fillColor = ~factpal(fra.sf.doug$NAME_1),
+    highlightOptions = highlightOptions(color = "white", weight = 2,
+      bringToFront = TRUE)) %>%
+  addPolygons(data = fra.sf, weight = 1, smoothFactor = 0.5,
+    opacity = 1.0, fillOpacity = 0,
+    color = "#000000")
+
+htmlwidgets::saveWidget(m, file = "m.html")
+
+```
+```{r}
+m  # Print the map
+```
