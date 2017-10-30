@@ -1,0 +1,100 @@
+---
+title: "Add multiple layers in leaflet widget"
+author: "Sébastien Rochette"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+# Define output size for the leaflet widget
+knitr::opts_chunk$set(
+  fig.width = 4.5,
+  fig.height = 4.5
+)
+```
+
+```{r leaflet, echo = FALSE, message = FALSE, warning = FALSE}
+library(leaflet)
+library(rgdal)
+
+# Working directory ------------------------------------------------------------
+wd <- ""
+
+# Read multiple shapefiles with standardised name ------------------------------
+species <- c("Sole", "Maquerel", "Langoustine", "Merlan")
+Groupnames <- c("Cas 1 : Sole", "Cas 2 : Maquereau", "Cas 3 : Langoustine",
+                "Cas 4 : Merlan")
+
+for (sp in species) {
+  for (type in c("Avis", "TAC")) {
+    files.sp <- readOGR(dsn = wd, layer = paste(sp, type, sep = "_"),
+                        verbose = FALSE)
+    assign(paste(sp, type, sep = "_"), files.sp)
+  }
+}
+
+# Create leaflet widget --------------------------------------------------------
+m <- leaflet() %>%
+  addTiles(group = "OSM (default)") 
+
+# Add multiple layers with a loop ----------------------------------------------
+for (sp.N in 1:length(species)) {
+  sp <- species[sp.N]
+  for (type in c("Avis", "TAC")) {
+    tmp <- get(paste(sp, type, sep = "_"))
+    
+    # Define different colors depending on type of data
+    if (type == "Avis") {
+      myPal <- colorRampPalette(c("blue", "skyblue", "navyblue"))
+      factpal.Div <- colorFactor(myPal(length(tmp$id)), tmp$id)
+      
+      m <- m %>%
+        addPolygons(data = tmp, 
+                    fillColor = ~factpal.Div(tmp$id), 
+                    color = "#000000", 
+                    opacity = 1, 
+                    fillOpacity = 0.8, 
+                    stroke = TRUE,
+                    weight = 1.5, 
+                    smoothFactor = 0.2,
+                    popup = paste0("Zone d'avis : ", tmp$id),
+                    group = Groupnames[sp.N]
+        ) 
+    } else {
+      myPal <- colorRampPalette(c("red", "orange", "brown"))
+      factpal.Div <- colorFactor(myPal(length(tmp$id)), tmp$id)
+      
+      m <- m %>%
+        addPolygons(data = tmp, 
+                    fillColor = "#FF0000",
+                    color = ~factpal.Div(tmp$id), 
+                    opacity = 0.6, 
+                    fillOpacity = 0.05, 
+                    stroke = TRUE,
+                    weight = 5, 
+                    smoothFactor = 0.2,
+                    popup = paste0("Zone de TAC : ", tmp$id),
+                    group = Groupnames[sp.N]
+        )
+    }
+  }
+} # end of species
+
+# Additional leaflet options ---------------------------------------------------
+m <- m %>%
+  # Add layers controls
+  addLayersControl(
+    baseGroups = Groupnames,
+    options = layersControlOptions(collapsed = FALSE)
+  ) %>%
+  # Add common legend
+  addLegend(colors = c("#4367F4", "#FF0000"),
+            labels = c("Zones d'avis", "Zones de TAC"),
+            opacity = c(0.8, 0.5))
+
+# Print the map ----------------------------------------------------------------            
+m
+```
+Widget réalisé par Sébastien de <http://statnmap.com>
+
+***                

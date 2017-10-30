@@ -1,0 +1,107 @@
+---
+title: "Translation of rmarkdown documents using a data frame"
+author: "StatnMap"
+date: "4 octobre 2017"
+output:
+  html_document: default
+  pdf_document: default
+lang: 'fr'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(knitr)
+```
+
+Simplfied version of blog article ["Translation of rmarkdown documents using a data frame"](//statnmap.com/2017-10-06-translation-rmarkdown-documents-using-data-frame) for direct use.
+
+```{r lang}
+# Define the output language
+lang <- "fr"
+```
+
+```{r CreateTranslation}
+# Create an external dataframe of translation
+# can be replaced by a csv or excel file)
+# Col-1 is original language ("en" here)
+# Col-2 is translation
+trans.df <- data.frame(
+  en = c("Translated part", 
+         "This is a long paragraph, with different ponctuations ! We can also add the content of a list in the document as follows:",
+         "item 1",
+         "item 2",
+         "item 3", "subitem 3"),
+  fr = c("Partie traduite", 
+         "  Le contenu du    paragraphe  est le suivant : ",
+         "élément 1",
+         "élément 2", 
+         "élément 3",
+         "sous-élément 3"))
+
+# Save it with a name that contains the lang attribute
+readr::write_csv(trans.df, path = file.path(tempdir(), paste0(lang, ".csv")))
+
+```
+
+```{r ReadTranslation, message=FALSE}
+# Read the external table file
+trans.df <- readr::read_csv(file.path(tempdir(), paste0(lang, ".csv")))
+# Remove space if before or after the text sequence
+trans.df <- trans.df %>%
+  mutate_all(function(.) gsub("[[:space:]]{2,}", " ", .)) %>%
+  mutate_all(function(.) gsub("^[[:space:]]*|[[:space:]]*$", "", .)) %>%
+  as.data.frame()
+```
+
+```{r TransRef}
+# Translation reference
+tr.orig <- trans.df[,"en"]
+```
+
+***
+
+```{r MyFirstParagraph, results='asis', verbatim=TRUE}
+cat('
+# ', trans.df[tr.orig == "Translated part", lang], '
+
+', trans.df[tr.orig == "This is a long paragraph, with different ponctuations ! We can also add the content of a list in the document as follows:", lang], '
+
+- ', trans.df[tr.orig == "item 1", lang], '
+- ', trans.df[tr.orig == "item 2", lang], '
+- ', trans.df[tr.orig == "item 3", lang], '
+    + ', trans.df[tr.orig == "subitem 3", lang], '
+', sep = "")
+```
+
+***
+
+```{r ListTranslationToDo}
+# Read the present file
+thisfile <- readr::read_lines("Template_translation_from_dataframe_simplified.Rmd")
+
+# Find lines with translations
+all_trans <- thisfile[grep('trans.df\\[tr.orig == "', thisfile)]
+all_trans <- unique(all_trans)
+
+# Extract translations
+empty.file <- purrr::map(
+  strsplit(all_trans, 'trans.df\\[tr.orig == "'), ~.x[2]) %>%
+  purrr::map_chr(~strsplit(.x, '", lang]', fixed = TRUE)[[1]][1]) %>%
+  data.frame(en = ., translation = "")
+
+# Save as csv to send to translators
+readr::write_csv(empty.file, path = "myemptyfile.csv")
+
+```
+
+After that, you can imagine everything you want:
+
+- integrate more formatting like *italic*, **bold**, ...
+- updating a table of translation to only send the missing translations to your translators
+- use a table with multiple columns for all translations
+- ...  
+
+Be creative !  
+You can also [contact me](//statnmap.com/contact/) for your projects like these or [any other project](//statnmap.com/freelance/) !
+

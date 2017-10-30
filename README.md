@@ -2,10 +2,17 @@
 You'll find here the different R-scripts that I share on my blog articles on <https://statnmap.com>.  
 These may be complete scripts or simplified versions to be use directly as templates.
 
-To find the associated blog article, you only have to add the title of folders after <https://statnmap.com/blog/>, like: <https://statnmap.com/blog/translation-of-rmarkdown-documents-using-a-data-frame>
+## Posts
 
-## Articles
+- [2017-10-06 - Translation of rmarkdown documents using a data frame](//statnmap.com/2017-10-06-translation-rmarkdown-documents-using-data-frame)
 
-- [Translation of rmarkdown documents using a data frame](//statnmap.com/blog/translation-of-rmarkdown-documents-using-a-data-frame)
+- [2017-08-10 - Polygon tint band with leaflet and simple feature with library (sf)](//statnmap.com/2017-08-10-polygons-tint-band-with-leaflet-and-simple-feature-library-sf/)
 
-- [Polygon tint band with leaflet and simple feature with library (sf)](//statnmap.com/blog/polygons-tint-band-with-leaflet-and-simple-feature-library-sf/)
+- [2017-04-09 - Plot a specific image delimited in a spatial polygon as a repeated pattern on a map](//statnmap.com/2017-04-09-plot-specific-image-delimited-polygon-repeated-pattern-on-map/)
+
+- [2016-12-01 - Add multiple layers in leaflet widget with R](//statnmap.com/2016-12-01-multiple-layers-leaflet-widget-with-rstat)
+
+- [2016-08-02 - Rshiny expert image comparison app](//statnmap.com/2016-08-02-rshiny-expert-image-comparison-app/)
+
+- [2015-07-23 - Cartographie et analyses spatiales avec R](//statnmap.com/2015-07-23-mapping-spatial-analyses-gis-with-r/)
+
