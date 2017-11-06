@@ -170,30 +170,42 @@ rasterVis::gplot(r.pred) +
 
 ## ----GlodeRgl, echo=TRUE, eval=!load-------------------------------------
 # Plot in 3d using rgl ----
-# _With deldir = 2D triangulation ----
-library(deldir)
+library(geometry)
 library(dplyr)
 library(rgl)
 
-# Triangulate top half of the globe
-r.cart.top <- as.data.frame(r.cart) %>% as.tbl() %>%
-  mutate(n = 1:n()) %>%
-  filter(z >= 0)
-r.cart.top.del <- deldir(as.data.frame(r.cart.top[,1:2]))
-r.cart.top.tri <- do.call(rbind, triang.list(r.cart.top.del))
-r.cart.top.tri$n <- r.cart.top$n[r.cart.top.tri$ptNum]
+# ---- Edit - 2017-11-06 ----
+# Triangulate entire globe directly with geometry ----
+# Thanks to Michael Sumner @mdsumner
+tri3d <- geometry::convhulln(r.cart)
+r.cart.tri <- r.cart[t(tri3d), ] %>%
+  mutate(n = c(t(tri3d)))
 
-# Triangulate bottom half of the globe
-r.cart.bottom <- as.data.frame(r.cart) %>% as.tbl() %>%
-  mutate(n = 1:n()) %>%
-  filter(z <= 0)
-r.cart.bottom.del <- deldir(as.data.frame(r.cart.bottom[,1:2]))
-r.cart.bottom.tri <- do.call(rbind, triang.list(r.cart.bottom.del))
-r.cart.bottom.tri$n <- r.cart.bottom$n[r.cart.bottom.tri$ptNum]
-
-# Combine top and bottom
-r.cart.tri <- rbind(r.cart.top.tri, r.cart.bottom.tri) %>%
-  mutate(z = r.cart[.$n,"z"])
+# Edit: Kept here as reminder but simpler with "geometry"
+if (FALSE) {
+  # _With deldir = 2D triangulation ----
+  library(deldir)
+  # Triangulate top half of the globe
+  r.cart.top <- as.data.frame(r.cart) %>% as.tbl() %>%
+    mutate(n = 1:n()) %>%
+    filter(z >= 0)
+  r.cart.top.del <- deldir(as.data.frame(r.cart.top[,1:2]))
+  r.cart.top.tri <- do.call(rbind, triang.list(r.cart.top.del))
+  r.cart.top.tri$n <- r.cart.top$n[r.cart.top.tri$ptNum]
+  
+  # Triangulate bottom half of the globe
+  r.cart.bottom <- as.data.frame(r.cart) %>% as.tbl() %>%
+    mutate(n = 1:n()) %>%
+    filter(z <= 0)
+  r.cart.bottom.del <- deldir(as.data.frame(r.cart.bottom[,1:2]))
+  r.cart.bottom.tri <- do.call(rbind, triang.list(r.cart.bottom.del))
+  r.cart.bottom.tri$n <- r.cart.bottom$n[r.cart.bottom.tri$ptNum]
+  
+  # Combine top and bottom
+  r.cart.tri <- rbind(r.cart.top.tri, r.cart.bottom.tri) %>%
+    mutate(z = r.cart[.$n,"z"])
+}
+# ---- End of Edit ----
 
 # Define a vector of colors for predictions
 n.break <- 20
@@ -255,28 +267,10 @@ for (i in 1:nb.img) {
   rgl.viewpoint(theta = 0, phi = 0, fov = 0, zoom = 0.7,
                 userMatrix = uMi)
   # Save image
-  filename <- paste0(extraWD, "/pic", formatC(i, digits = 1, flag = "0"), ".png")
+  filename <- paste0(extraWD, "/gif/pic", formatC(i, digits = 1, flag = "0"), ".png")
   rgl.snapshot(filename)    
 }
 # Create gif
-system(glue::glue("convert -delay 10 {extraWD}/*.png -loop 0 ../../static{StaticImgWD}/Globe3D_rgl.gif"))
+system(glue::glue("convert -delay 10 {extraWD}/gif/*.png -loop 0 ../../static{StaticImgWD}/Globe3D_rgl.gif"))
 
-
-## ---- echo=FALSE, eval=!load---------------------------------------------
-rgl.postscript(file.path(extraWD, "3D_Globe_Interpolation.svg"), fmt="svg")
-# Close device
-rgl.close()
-
-
-## ----CopyImg, echo=FALSE-------------------------------------------------
-# Save images in static (permanent) directory
-if (dir.exists(glue("{tmpImgWD}/figure-html"))) {
-  file.copy(list.files(glue("{tmpImgWD}/figure-html"), full.names = TRUE),
-            glue("../../static{StaticImgWD}"), recursive = TRUE) 
-  unlink(glue("{tmpImgWD}/figure-html"), recursive = TRUE)
-  if (length(dir(tmpImgWD)) == 0) {
-    unlink(tmpImgWD, recursive = TRUE) 
-  }
-}
-if (!load) {warning(glue("load=FALSE in {StaticImgWD}"))}
 
