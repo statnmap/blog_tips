@@ -3,6 +3,8 @@ You'll find here the different R-scripts that I share on my blog articles on <ht
 These are R or Rmarkdown scripts, complete or simplified, to be use directly as is.
 
 ## Posts
+- [2017-11-13 Enable code folding in bookdown and blogdown](//statnmap.com/2017-11-13-enable-code-folding-in-bookdown-and-blogdown)
+
 - [2017-11-01 Spatial interpolation on Earth as a 3D sphere](//statnmap.com/2017-11-01-spatial-interpolation-on-earth-as-a-3d-sphere)
 
 - [2017-10-06 - Translation of rmarkdown documents using a data frame](//statnmap.com/2017-10-06-translation-rmarkdown-documents-using-data-frame)
