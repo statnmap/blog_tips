@@ -3,6 +3,9 @@ You'll find here the different R-scripts that I share on my blog articles on <ht
 These are R or Rmarkdown scripts, complete or simplified, to be use directly as is.
 
 ## Posts
+
+- [2018-04-18-draw-maps-like-paintings](//statnmap.com/2018-04-18-draw-maps-like-paintings)
+
 - [2018-01-27-spatial-correlation-between-rasters](//statnmap.com/2018-01-27-spatial-correlation-between-rasters)
 
 - [2017-11-13 Enable code folding in bookdown and blogdown](//statnmap.com/2017-11-13-enable-code-folding-in-bookdown-and-blogdown)
