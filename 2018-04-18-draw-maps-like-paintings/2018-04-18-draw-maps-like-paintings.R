@@ -72,12 +72,8 @@ ggplot() +
   )
 
 ## ----youngskm2cities, fig.height=7, fig.width=9, eval=!load--------------
-# Reproject Region
-Region_Prop_wgs84 <- Region_Prop_L93 %>%
-  st_transform(4326)
-
-# Add cities
-cities_wgs84 <- tibble(
+# Add cities and project in Lambert93
+cities_L93 <- tibble(
   city = c("Paris", "Rennes", "Lille", "Strasbourg", "Brest", "Bordeaux",
     "Montpellier", "Nice", "lyon"),
   lat = c(48.857256, 48.110867, 50.625291, 48.576816, 48.384679, 44.843019,
@@ -87,19 +83,20 @@ cities_wgs84 <- tibble(
 ) %>%
   st_as_sf(coords = c("long", "lat")) %>%
   st_set_crs(4326) %>%
+  st_transform(2154) %>% 
   bind_cols(st_coordinates(.) %>% as.data.frame())
 
 # Plot
-ggplot(Region_Prop_wgs84) +
-  geom_sf(data = Region_Prop_wgs84,
+ggplot(Region_Prop_L93) +
+  geom_sf(data = Region_Prop_L93,
           aes(fill = Prop_20_km2), alpha = 0.9, colour = NA
   ) +
-  geom_sf(data = Region_Prop_wgs84,
+  geom_sf(data = Region_Prop_L93,
           aes(colour = Prop_20_km2), alpha = 1, fill = NA
   ) +
-  geom_sf(data = cities_wgs84, colour = "grey30") +
+  geom_sf(data = cities_L93, colour = "grey30") +
   geom_text(
-    data = cities_wgs84, aes(X, Y, label = city), nudge_y = 0.3,
+    data = cities_L93, aes(X, Y, label = city), nudge_y = 20000,
     family = "Nanum Pen", colour = "grey20", size = 6
   ) +
   scale_fill_gradient("Youngs / km²",
@@ -115,37 +112,38 @@ ggplot(Region_Prop_wgs84) +
   theme_pomological_fancy(base_family = "Nanum Pen") +
   labs(
     title = "Number of people aged below 20 by km² in 2015",
-    caption = "source: http://www.ecosante.fr/\nproj: wgs84, epsg: 4326. aut.: S. Rochette, ThinkR."
+    caption = "source: http://www.ecosante.fr/\nproj: Lambert93, epsg: 2154 aut.: S. Rochette, ThinkR."
   ) +
   xlab("") + ylab("") +
-  north(Region_Prop_wgs84, symbol = 4, scale = 0.1) +
-  scalebar(Region_Prop_wgs84, location = "bottomleft", dist = 200, dd2km = TRUE,
+  north(Region_Prop_L93, symbol = 4, scale = 0.1) +
+  scalebar(Region_Prop_L93, location = "bottomleft", dist = 200, dd2km = FALSE,
            model = "WGS84", box.fill = c("grey30", "white"), 
            box.color = "grey30", st.color = "grey30", family = "Nanum Pen"
   ) +
-  theme(text = element_text(family = "Nanum Pen"))
+  theme(text = element_text(family = "Nanum Pen")) +
+  coord_sf(crs = 2154)
 
 
 ## ----regions, fig.height=7, fig.width=9, eval=!load----------------------
 # palette
 cols <- rep(ggpomological:::pomological_palette,
-  length.out = length(Region_Prop_wgs84$NOM_REG))
+  length.out = length(Region_Prop_L93$NOM_REG))
 
-ggplot(Region_Prop_wgs84) +
+ggplot(Region_Prop_L93) +
   geom_sf(
-    data = Region_Prop_wgs84,
+    data = Region_Prop_L93,
     aes(fill = NOM_REG),
     alpha = 0.9, colour = NA
   ) +
   geom_sf(
-    data = Region_Prop_wgs84,
+    data = Region_Prop_L93,
     aes(colour = NOM_REG),
     alpha = 1, fill = NA
   ) +
-  geom_sf(data = cities_wgs84, colour = "grey30") +
+  geom_sf(data = cities_L93, colour = "grey30") +
   geom_text(
-    data = cities_wgs84, aes(X, Y, label = city),
-    nudge_y = 0.3, family = "Nanum Pen",
+    data = cities_L93, aes(X, Y, label = city),
+    nudge_y = 20000, family = "Nanum Pen",
     colour = "grey20", size = 6
   ) +
   scale_fill_manual(
@@ -159,16 +157,18 @@ ggplot(Region_Prop_wgs84) +
   theme_pomological_fancy(base_family = "Nanum Pen") +
   labs(
     title = "French regions",
-    caption = "source: https://www.ign.fr/\nproj: wgs84, epsg: 4326. aut.: S. Rochette, ThinkR."
+    caption = "source: https://www.ign.fr/\nproj: Lambert93, epsg: 2154 aut.: S. Rochette, ThinkR."
   ) +
   xlab("") + ylab("") +
-  north(Region_Prop_wgs84, symbol = 4, scale = 0.1) +
+  north(Region_Prop_L93, symbol = 4, scale = 0.1) +
   scalebar(
-    Region_Prop_wgs84,
+    Region_Prop_L93,
     location = "bottomleft", dist = 200,
-    dd2km = TRUE, model = "WGS84",
+    dd2km = FALSE, model = "WGS84",
     box.fill = c("grey30", "white"), box.color = "grey30",
     st.color = "grey30", family = "Nanum Pen"
   ) +
-  theme(text = element_text(family = "Nanum Pen"))
+  theme(text = element_text(family = "Nanum Pen")) +
+  coord_sf(crs = 2154)
+
 
