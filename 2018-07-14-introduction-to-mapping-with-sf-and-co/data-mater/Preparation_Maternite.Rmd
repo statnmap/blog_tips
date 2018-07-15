@@ -1,0 +1,178 @@
+---
+title: "Maternités"
+author: "Sébastien Rochette"
+date: "5 décembre 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(glue)
+library(dplyr)
+```
+
+Préparons la liste des maternités pour notre [article de blog qui parle de géomatique](https://thinkr.fr) avec la librairie {sf}.  
+Les données viennent du portail <http://drees.solidarites-sante.gouv.fr/etudes-et-statistiques/open-data/data-drees/> du ministère des solidarités et de la santé. Ce sont les bases "SAE - La statistique annuelle des établissements de santé". D'après les informations de la base, les maternités sont dans les fichiers "q16" (Obstétrique) et "q16b" (Néonatalogie, Soins intensifs aux nouveau-nés, Réanimation néonatale). Les identifiants des établissements peuvent être reliés au communes avec le fichier "id". Nous le combinons avec la table "id2" pour récupérer les code des arrondissements pour les villes qui en ont. La commune sera l'individu de base pour la cartographie.  
+
+
+```{r}
+annees <- list(2004, 2010)
+
+get_communes <- function(an) {
+  # Etablissement - Commune
+  ets <- readr::read_delim(
+    glue("data_mater/SAE_{an}/Base_CSV/id_{an}.csv"),
+    delim = ";") %>%
+    inner_join(
+      readr::read_delim(
+        glue("data_mater/SAE_{an}/Base_CSV/id2_{an}.csv"),
+        delim = ";"),
+      by = c("FI", "AN")
+    ) %>%
+    mutate(
+      Code_Insee = case_when(
+        AN == 2004 ~ as.character(glue("{DEP}{COM}")),
+        AN == 2010 ~ 
+          formatC(COM, width = 5, flag = "0")
+      ),
+      Code_Postal = CPO) %>%
+    select(FI, Code_Insee, Code_Postal)
+  
+  # Etablissements avec maternite
+  mater <- readr::read_delim(
+    glue("data_mater/SAE_{an}/Base_CSV/q16_{an}.csv"),
+    delim = ";"
+  ) %>%
+    bind_rows(
+      readr::read_delim(
+        glue("data_mater/SAE_{an}/Base_CSV/q16_b_{an}.csv"),
+        delim = ";"
+      )
+    ) %>%
+    select(FI, MATER)
+  
+  # Join Maternite et Code_Insee  
+  mater_communes <- left_join(mater, ets, by = "FI") %>%
+    # group_by(Code_Insee, Code_Postal) %>%
+    # summarize() %>%
+    select(FI, Code_Insee, Code_Postal) %>%
+    mutate(an = an)
+  
+  return(mater_communes)
+}
+
+mater_communes_2004_2010 <- purrr::map_df(annees, ~get_communes(.x)) %>%
+  distinct()
+
+```
+
+Pour 2016, la base change de format. Le fichier "FILTRE_2016.csv" contient la liste des établissement et un résumé des différents services. La variable "HEB_PERINAT" indique s'il y a un département "Périnatalité avec hébergement (obstétrique, néonatalogie,réanimation néonatale, IVG)"
+```{r}
+an <- 2016
+# Etablissement - Commune
+ets <- readr::read_delim(
+  glue("data_mater/SAE_{an}/Base_CSV/ID_{an}.csv"),
+  delim = ";") %>%
+  mutate(INSEE_COM = ifelse(is.na(ARMT),
+           formatC(COMINSEE, width = 5, flag = "0"),
+           formatC(ARMT, width = 5, flag = "0")),
+         Code_Postal = 
+           formatC(CPO, width = 5, flag = "0")) %>%
+  select(fi, INSEE_COM, Code_Postal)
+
+# Etablissements avec maternite
+mater <- readr::read_delim(
+  glue("data_mater/SAE_{an}/Base_CSV/FILTRE_{an}.csv"),
+  delim = ";") %>%
+  filter(STATUT == "DECLA",
+         HEB_PERINAT > 0) %>%
+  select(FI)
+
+# Join Maternite et Code_Insee
+mater_communes_2016 <- left_join(mater, ets, 
+                            by = c("FI" = "fi")) %>%
+  group_by(INSEE_COM, Code_Postal) %>%
+  summarize(n = n()) %>%
+  mutate(an = an)
+
+```
+
+Certaines communes sont subdivisées sur la carte de l'IGN qu'on utilisera plus tard (Paris, Lyon, Marseille), mais pas dans le code Insee fourni dans le fichier des établissements (`com_arr`). Nous retrouverons ces communes avec le code postal (il est différent du code Insee). La commune de Saint-Pol-Sur-Mer n'existe plus dans la base IGN, elle sera remplacée par les informations géographiques de Dunkerque.  
+Nous corrigeons le code Insee de 2004 et 2010 par rapport à 2016. 2016 contient en effet le Code Insee pour les villes avec arrondissements (Paris, Marseille, Lyon). Cependant, comme certaines maternités ont fermé et que des communes ont disparues, il faut corriger le reste à la main avec le fichier "Codes_manquants_complete.csv".
+```{r}
+com_arr <- c(13055, 69123, 75056, 59540)
+
+# corresp_data <- readr::read_delim(
+#    "data_mater/laposte_hexasmal.csv",
+#    delim = ";") %>%
+#   mutate(
+#     Code_Postal =
+#       formatC(Code_postal, width = 5, flag = "0"),
+#     Code_Insee =
+#       formatC(Code_commune_INSEE, width = 5, flag = "0"))
+
+# Effacement du Code_Insee avec 2016 si existe
+mater_communes_correct_a <-
+  mater_communes_2004_2010 %>%
+  # left_join(corresp_data, by = "Code_Postal") %>%
+  left_join(mater_communes_2016, by = "Code_Postal") %>%
+  mutate(Code_Insee = 
+           ifelse(!is.na(INSEE_COM),
+                  INSEE_COM,
+                  Code_Insee
+  )) %>%
+  mutate(an = an.x) %>%
+  select(-an.x, -an.y, -n)
+
+if (FALSE) {
+  # Code INSEE manquants en 2016 car fermetures
+  filter(mater_communes_correct_a, 
+         Code_Insee %in% com_arr,
+         is.na(INSEE_COM)) %>%
+    select(-FI, -contains("an")) %>%
+    distinct() %>%
+    arrange(Code_Postal) %>%
+    readr::write_csv("data_mater/Codes_manquants.csv")
+}
+
+# Lire fichier rempli manuellement
+Insee_correction <- readr::read_csv(
+  "data_mater/Codes_manquants_complete.csv") %>%
+  mutate_if(is.integer, as.character) %>%
+  select(Code_Postal, INSEE_COM)
+
+# Ajout des derniers codes Insee manquants
+mater_communes_correct <- 
+  mater_communes_correct_a %>%
+  select(-INSEE_COM) %>%
+  left_join(Insee_correction,
+            by = "Code_Postal") %>%
+  mutate(INSEE_COM = 
+           ifelse(is.na(INSEE_COM),
+                  Code_Insee,
+                  INSEE_COM)) %>%
+  group_by(an, Code_Postal, INSEE_COM) %>%
+  summarize(n = n())
+
+```
+
+Combinons toutes les années. Seules les communes de France Métropolitaine sont conservées.
+```{r}
+mater_communes <- bind_rows(mater_communes_correct,
+                            mater_communes_2016) %>%
+  # mutate(row = row_number()) %>%
+  # tidyr::spread(an, n) %>%
+  arrange(INSEE_COM)
+
+# Filter seulement metropole
+mater_communes %<>%
+  filter(!grepl("^97[[:digit:]]{3}|^9[[:alpha:]][[:digit:]]{3}", INSEE_COM))
+  
+readr::write_csv(mater_communes,
+                 "data_mater/Maternite_2004-2016.csv")
+```
+
+
