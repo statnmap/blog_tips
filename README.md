@@ -4,6 +4,8 @@ These are R or Rmarkdown scripts, complete or simplified, to be use directly as 
 
 ## Posts
 
+- [2018-10-28-play-with-spatial-tools-on-3d-cells-images](//statnmap.com/2018-10-28-play-with-spatial-tools-on-3d-cells-images/)
+
 - [2018-07-14-introduction-to-mapping-with-sf-and-co](//statnmap.com/2018-07-14-introduction-to-mapping-with-sf-and-co/)
 
 - [2018-04-18-draw-maps-like-paintings](//statnmap.com/2018-04-18-draw-maps-like-paintings)
