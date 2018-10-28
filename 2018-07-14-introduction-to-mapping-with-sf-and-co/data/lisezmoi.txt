@@ -1,0 +1,50 @@
+========================================================================
+		FOND DE CARTE DES CODES POSTAUX EN FRANCE METROPOLITAINE		
+========================================================================
+
+
+Description
+============
+Ce fichier contient le tracé des codes postaux en France métropolitaine (y compris les codes postaux supra-communaux) ainsi qu'une estimation de la population et du nombre de ménages.
+
+
+Source des données
+==================
+Ce fichier est issu d'un traitement informatique mené par Emc3 regroupant plusieurs sources d'information:
+ - GEOFLA® Communes produit par l'IGN (édition 2013),
+ - HEXAPOSTE produit par le Service National de l'Adresse (édition janvier 2014),
+ - OpenStreetMap,
+ - Données carroyées à 200 mètres diffusées par l'Insee,
+ - Résultats du recensement général de la population diffusé par l'Insee.
+ 
+Nous remercions chaleureusement Nicolas Touyet dont le travail a permis l'élaboration de ce fond de carte.
+ 
+Emc3 maintient ce jeu de données afin d'améliorer l'accessibilité des citoyens aux données géographiques de référence. Notre but est de fournir une information la plus précise possible. Si des erreurs sont portées à notre connaissance, nous essaierons de les corriger. Toutefois, Emc3 n'assume aucune responsabilité quant à l'exactitude des informations sur cet ensemble de données géographiques.
+
+Licence
+=======
+Le présent jeu de donné est publié sous Licence ODbL (pour plus d'information consulter : http://opendatacommons.org/licenses/odbl/summary/ ). Cela signifie que vous pouvez diffuser, reproduire et enrichir cette ressource aussi longtemps que vous en citez les sources.
+
+
+Contenu
+=======
+Les données géographiques sont fournies en projection Lambert 93 au format ESRI Shape et Mapinfo.
+
+Liste des champs:
+id			:	identifiant du code postal à 5 chiffres
+lib			:	libellé du code postal
+dep			:	code du département
+surf		:	superficie (en km²)
+pop2010		:	population estimée en 2010
+men2010		:	nombre de ménages estimé en 2010
+
+
+Méthodologie
+============
+
+A partir du tracé des communes de la base GEOFLA et du fichier HEXAPOSTE, nous avons regroupé les communes appartenant à un même code postal.
+Pour les communes subdivisées en plusieurs codes postaux, un géocodage inversé et un algorithme de contour ont permis d'obtenir le tracé infra-communal.
+Le fond de carte obtenu fournit un tracé compatible avec la base GEOFLA, édition 2013.
+
+
+Les estimations de population et du nombre de ménages ont été obtenues en confrontant le découpage des codes postaux avec les données carroyées de l'Insee: la population d'un carreau ayant été répartie au prorata de la superficie commune au carreau et aux différents codes postaux. Un redressement a ensuite été effectué pour permettre une compatibilité avec les résultats du recensement général de la population.

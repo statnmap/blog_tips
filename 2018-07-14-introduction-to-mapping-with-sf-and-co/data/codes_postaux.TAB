@@ -1,0 +1,13 @@
+!table
+!version 300
+!charset WindowsLatin1
+
+Definition Table
+  Type NATIVE Charset "WindowsLatin1"
+  Fields 6
+    id Char (5) Index 1 ;
+    lib Char (36) ;
+    dep Char (2) Index 2 ;
+    surf Float ;
+    pop2010 Float ;
+    men2010 Float ;
