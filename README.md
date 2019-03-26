@@ -1,8 +1,10 @@
 # StatnMap blog tips
 You'll find here the different R-scripts that I share on my blog articles on <https://statnmap.com>.  
-These are R or Rmarkdown scripts, complete or simplified, to be use directly as is.
+These are data, R or Rmarkdown scripts, complete or simplified, to be use directly as is.
 
 ## Posts
+
+- [2019-03-20-kaggle-survey-2018-maps-of-languages-used-and-repartition-of-reproducibility-issues](//statnmap.com/2019-03-20-kaggle-survey-2018-maps-of-languages-used-and-repartition-of-reproducibility-issues)
 
 - [2018-10-28-play-with-spatial-tools-on-3d-cells-images](//statnmap.com/2018-10-28-play-with-spatial-tools-on-3d-cells-images/)
 
