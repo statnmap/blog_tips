@@ -4,6 +4,8 @@ These are data, R or Rmarkdown scripts, complete or simplified, to be use direct
 
 ## Posts
 
+- [2019-04-02-mesh3d-rayshader-and-rayrender](//statnmap.com/2019-04-02-mesh3d-rayshader-and-rayrender)
+
 - [2019-03-20-kaggle-survey-2018-maps-of-languages-used-and-repartition-of-reproducibility-issues](//statnmap.com/2019-03-20-kaggle-survey-2018-maps-of-languages-used-and-repartition-of-reproducibility-issues)
 
 - [2018-10-28-play-with-spatial-tools-on-3d-cells-images](//statnmap.com/2018-10-28-play-with-spatial-tools-on-3d-cells-images/)
