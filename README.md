@@ -4,6 +4,8 @@ These are data, R or Rmarkdown scripts, complete or simplified, to be use direct
 
 ## Posts
 
+- [2019-10-06-follow-moving-particle-trajectory-on-raster-with-rayshader](//statnmap.com/2019-10-06-follow-moving-particle-trajectory-on-raster-with-rayshader)
+
 - [2019-04-02-mesh3d-rayshader-and-rayrender](//statnmap.com/2019-04-02-mesh3d-rayshader-and-rayrender)
 
 - [2019-03-20-kaggle-survey-2018-maps-of-languages-used-and-repartition-of-reproducibility-issues](//statnmap.com/2019-03-20-kaggle-survey-2018-maps-of-languages-used-and-repartition-of-reproducibility-issues)
