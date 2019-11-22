@@ -4,6 +4,8 @@ These are data, R or Rmarkdown scripts, complete or simplified, to be use direct
 
 ## Posts
 
+- [2019-11-22-30daymapchallenge-building-maps-3-earth-is-sphere](//statnmap.com/2019-11-22-30daymapchallenge-building-maps-3-earth-is-sphere)
+
 - [2019-11-15-30daymapchallenge-building-maps-2-tmap](//statnmap.com/2019-11-15-30daymapchallenge-building-maps-2-tmap)
 
 - [2019-11-08-30daymapchallenge-building-maps-1](//statnmap.com/2019-11-08-30daymapchallenge-building-maps-1)
