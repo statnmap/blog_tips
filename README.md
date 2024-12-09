@@ -4,6 +4,8 @@ These are data, R or Rmarkdown scripts, complete or simplified, to be use direct
 
 ## Posts
 
+- [2024-12-06-spatial-correlation-between-rasters-using-terra](//statnmap.com/2024-12-06-spatial-correlation-between-rasters-using-terra/)
+
 - [2019-11-22-30daymapchallenge-building-maps-3-earth-is-sphere](//statnmap.com/2019-11-22-30daymapchallenge-building-maps-3-earth-is-sphere)
 
 - [2019-11-15-30daymapchallenge-building-maps-2-tmap](//statnmap.com/2019-11-15-30daymapchallenge-building-maps-2-tmap)
